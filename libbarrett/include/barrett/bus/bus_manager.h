@@ -95,19 +95,19 @@ namespace barrett
 		private:
 			struct Message
 			{
-				Message(const unsigned char *d, size_t l) : len(l)
-				{
-					memcpy(data, d, len);
-				}
+				// Message(const unsigned char *d, size_t l) : len(l)
+				// {
+				// 	memcpy(data, d, len);
+				// }
 
-				void copyTo(unsigned char *d, size_t &l)
-				{
-					l = len;
-					memcpy(d, data, len);
-				}
+				// void copyTo(unsigned char *d, size_t &l)
+				// {
+				// 	l = len;
+				// 	memcpy(d, data, len);
+				// }
 
-				unsigned char data[CommunicationsBus::MAX_MESSAGE_LEN];
-				size_t len;
+				// unsigned char data[CommunicationsBus::MAX_MESSAGE_LEN];
+				// size_t len;
 			};
 
 			static const size_t MESSAGE_BUFFER_SIZE = 10;
