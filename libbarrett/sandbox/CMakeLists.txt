@@ -72,7 +72,6 @@ add_programs(
 	voltage_control
 	wrist
 	wrist_teach_with_hand
-	wam7_bhand_demo
 )
 
 #target_link_libraries(hand_buttons_test parapin)

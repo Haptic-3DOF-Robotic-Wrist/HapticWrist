@@ -83,8 +83,8 @@ public:
 	}
 
 
-	static const double MAX_SCALE = 4.0;
-	static const double MIN_SCALE = 0.25;
+	static constexpr double MAX_SCALE = 4.0;
+	static constexpr double MIN_SCALE = 0.25;
 
 	void calculateTorqueGain() {
 		libconfig::Config config;
@@ -191,7 +191,7 @@ void moveToStr(systems::Wam<DOF>& wam, math::Matrix<R,C, Units>* dest,
 		std::cout << "Moving to " << description << ": " << *dest << std::endl;
 		wam.moveTo(*dest);
 	} else {
-		printf("ERROR: Please enter exactly %d numbers separated by "
+		printf("ERROR: Please enter exactly %ld numbers separated by "
 				"whitespace.\n", dest->size());
 	}
 }
