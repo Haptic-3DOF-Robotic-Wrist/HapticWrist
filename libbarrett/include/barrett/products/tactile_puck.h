@@ -44,7 +44,6 @@ namespace barrett {
 
 class TactilePuck : public SpecialPuck {
 public:
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	static const size_t NUM_SENSORS = 24;
 	typedef math::Vector<NUM_SENSORS>::type v_type;
 
@@ -120,7 +119,7 @@ protected:
 
 	static const size_t NUM_FULL_MESSAGES = 5;
 	static const size_t NUM_SENSORS_PER_FULL_MESSAGE = 5;
-	static constexpr double FULL_SCALE_FACTOR = 256.0;
+	static const double FULL_SCALE_FACTOR = 256.0;
 
 
 	friend class Hand;

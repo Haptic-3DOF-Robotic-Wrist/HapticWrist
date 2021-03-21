@@ -64,7 +64,7 @@ public:
 
 protected:
 	virtual void operate() {
-		this->evalInverse(this->kinInput.getValue(), jvInput.getValue(), this->input.getValue());
+		evalInverse(this->kinInput.getValue(), jvInput.getValue(), this->input.getValue());
 		this->outputValue->setData(&this->jt);
 	}
 

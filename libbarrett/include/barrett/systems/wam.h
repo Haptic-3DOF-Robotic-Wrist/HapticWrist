@@ -156,8 +156,7 @@ public:
 	/** getToolOrientation() returns Tool Orientation in Quaternions
      */
 	Eigen::Quaterniond getToolOrientation() const;
-	/** getToolPose() returns Tool Pose as a combination of Tool Position in
-   *  Cartesian Space meters and Tool Orientation in Quaternions
+	/** getToolPose() returns Tool Pose as a combination of 
      */
 	pose_type getToolPose() const;
     /** getToolJacobian() returns matrix of first order partial derivatives.

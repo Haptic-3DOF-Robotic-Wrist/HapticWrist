@@ -36,9 +36,7 @@
 #include <cassert>
 #include <vector>
 
-#define EIGEN_USE_NEW_STDVECTOR
 #include <Eigen/Core>
-#include <Eigen/StdVector>
 
 #include <barrett/detail/ca_macro.h>
 #include <barrett/units.h>
@@ -53,14 +51,14 @@ namespace systems {
 class HapticPath : public HapticObject {
 	BARRETT_UNITS_FIXED_SIZE_TYPEDEFS;
 
-	static constexpr double COARSE_STEP = 0.01;
-	static constexpr double FINE_STEP = 0.0001;
+	static const double COARSE_STEP = 0.01;
+	static const double FINE_STEP = 0.0001;
 
 public:		System::Output<cp_type> tangentDirectionOutput;
 protected:	System::Output<cp_type>::Value* tangentDirectionOutputValue;
 
 public:
-	HapticPath(const std::vector<cp_type, Eigen::aligned_allocator<cp_type> >& path,
+	HapticPath(const std::vector<cp_type>& path,
 			const std::string& sysName = "HapticPath") :
 		HapticObject(sysName),
 		tangentDirectionOutput(this, &tangentDirectionOutputValue),
@@ -122,7 +120,7 @@ protected:
 	cf_type dir;
 	cp_type tangentDir;
 
-	std::vector<cp_type, Eigen::aligned_allocator<cp_type> > coarsePath;
+	std::vector<cp_type> coarsePath;
 	math::Spline<cp_type>* spline;
 
 private:

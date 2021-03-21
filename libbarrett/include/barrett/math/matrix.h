@@ -20,6 +20,7 @@
 #include <libconfig.h++>
 
 #include <Eigen/Core>
+#include <Eigen/Array>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 
@@ -39,9 +40,9 @@ struct Vector {
 
 
 template<int R, int C, typename Units>
-class Matrix : public Eigen::Matrix<double, R,C, (C==1 && R>1) ? Eigen::ColMajor : Eigen::RowMajor> {
+class Matrix : public Eigen::Matrix<double, R,C, Eigen::RowMajorBit> {
 public:
-	typedef Eigen::Matrix<double, R,C, (C==1 && R>1) ? Eigen::ColMajor : Eigen::RowMajor> Base;
+	typedef Eigen::Matrix<double, R,C, Eigen::RowMajorBit> Base;
 	typedef Matrix<R,C, Units> type;
 
 	typedef typename boost::mpl::if_c<
@@ -75,10 +76,6 @@ public:
 
 //	EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Matrix);
 	using Base::operator=;
-
-  inline bool isVector() const {
-    return this->rows() == 1 || this->cols() == 1;
-  }
 
 	// the default operator= does it wrong.
 	inline Matrix& operator=(const Matrix& other) {
@@ -195,85 +192,84 @@ template<typename TraitsDerived> struct Traits<Eigen::MatrixBase<TraitsDerived> 
 	// matrix-matrix
 	template<typename LDerived, typename RDerived> static
 	const Eigen::CwiseBinaryOp<
-		Eigen::internal::scalar_sum_op<
-			typename Eigen::internal::traits<LDerived>::Scalar>,
-		const LDerived,
-		const RDerived
+		Eigen::ei_scalar_sum_op<
+			typename Eigen::ei_traits<LDerived>::Scalar>,
+		LDerived,
+		RDerived
 	>
 	add(const Eigen::MatrixBase<LDerived>& l, const Eigen::MatrixBase<RDerived>& r) {
-		return (l.derived() + r.derived());
+		return l + r;
 	}
 
 	template<typename LDerived, typename RDerived> static
 	const Eigen::CwiseBinaryOp<
-		Eigen::internal::scalar_difference_op<
-			typename Eigen::internal::traits<LDerived>::Scalar>,
-		const LDerived,
-		const RDerived
+		Eigen::ei_scalar_difference_op<
+			typename Eigen::ei_traits<LDerived>::Scalar>,
+		LDerived,
+		RDerived
 	>
 	sub(const Eigen::MatrixBase<LDerived>& l, const Eigen::MatrixBase<RDerived>& r) {
 		return l - r;
 	}
 
 	template<typename LDerived, typename RDerived> static
-	const Eigen::CwiseBinaryOp<
-		Eigen::internal::scalar_product_op<
-			typename Eigen::internal::scalar_product_traits<
-				typename Eigen::internal::traits<LDerived>::Scalar,
-				typename Eigen::internal::traits<RDerived>::Scalar
+	Eigen::CwiseBinaryOp<
+		Eigen::ei_scalar_product_op<
+			typename Eigen::ei_scalar_product_traits<
+				typename Eigen::ei_traits<LDerived>::Scalar,
+				typename Eigen::ei_traits<RDerived>::Scalar
 				>::ReturnType
 		>,
-		const LDerived,
-		const RDerived
+		LDerived,
+		RDerived
 	>
 	mult(const Eigen::MatrixBase<LDerived>& l, const Eigen::MatrixBase<RDerived>& r) {
-    return l.cwiseProduct(r);
+		return l.cwise() * r;
 	}
 
 	template<typename LDerived, typename RDerived> static
-	const Eigen::CwiseBinaryOp<
-		Eigen::internal::scalar_quotient_op<typename Eigen::internal::traits<LDerived>::Scalar>,
-		const LDerived,
-		const RDerived
+	Eigen::CwiseBinaryOp<
+		Eigen::ei_scalar_quotient_op<typename Eigen::ei_traits<LDerived>::Scalar>,
+		LDerived,
+		RDerived
 	>
 	div(const Eigen::MatrixBase<LDerived>& l, const Eigen::MatrixBase<RDerived>& r) {
-    return l.cwiseQuotient(r);
+		return l.cwise() / r;
 	}
 
 
 	// matrix-scalar
 	template<typename Derived> static
 	const Eigen::CwiseUnaryOp<
-		Eigen::internal::scalar_add_op<typename Eigen::internal::traits<Derived>::Scalar>,
-		const Derived
+		Eigen::ei_scalar_add_op<typename Eigen::ei_traits<Derived>::Scalar>,
+		Derived
 	>
 	add(const Eigen::MatrixBase<Derived>& l, double r) {
-		return l + r;
+		return l.cwise() + r;
 	}
 
 	template<typename Derived> static
 	const Eigen::CwiseUnaryOp<
-		Eigen::internal::scalar_add_op<typename Eigen::internal::traits<Derived>::Scalar>,
-		const Derived
+		Eigen::ei_scalar_add_op<typename Eigen::ei_traits<Derived>::Scalar>,
+		Derived
 	>
-	add(const double l, const Eigen::MatrixBase<Derived>& r) {
-    return Eigen::CwiseUnaryOp<Eigen::internal::scalar_add_op<typename Eigen::internal::traits<Derived>::Scalar>, const Derived>(r.derived(), Eigen::internal::scalar_add_op<typename Eigen::internal::traits<Derived>::Scalar>(l));
-    //return l + r;
+	add(double l, const Eigen::MatrixBase<Derived>& r) {
+		return l + r.cwise();
 	}
 
 	template<typename Derived> static
 	const Eigen::CwiseUnaryOp<
-		Eigen::internal::scalar_add_op<typename Eigen::internal::traits<Derived>::Scalar>,
-		const Derived
+		Eigen::ei_scalar_add_op<typename Eigen::ei_traits<Derived>::Scalar>,
+		Derived
 	>
 	sub(const Eigen::MatrixBase<Derived>& l, double r) {
-		return l - r;
+		return l.cwise() - r;
 	}
 
 	template<typename Derived> static
 	const Eigen::CwiseUnaryOp<
-		Eigen::internal::scalar_opposite_op<typename Eigen::internal::traits<Derived>::Scalar>,
-		const Derived
+		Eigen::ei_scalar_opposite_op<typename Eigen::ei_traits<Derived>::Scalar>,
+		Derived
 	>
 	neg(const Eigen::MatrixBase<Derived>& t) {
 		return -t;
@@ -282,24 +278,24 @@ template<typename TraitsDerived> struct Traits<Eigen::MatrixBase<TraitsDerived> 
 	template<typename Derived> static
 // TODO(dc): this method returns random (uninitialized? deallocated?) values when it has the commented-out return type. i don't know why.
 //	const Eigen::CwiseUnaryOp<
-//		Eigen::internal::scalar_add_op<typename Eigen::internal::traits<Eigen::CwiseUnaryOp<
-//			Eigen::internal::scalar_opposite_op<typename Eigen::internal::traits<Derived>::Scalar>,
+//		Eigen::ei_scalar_add_op<typename Eigen::ei_traits<Eigen::CwiseUnaryOp<
+//			Eigen::ei_scalar_opposite_op<typename Eigen::ei_traits<Derived>::Scalar>,
 //			Derived
 //		> >::Scalar>,
 //		Eigen::CwiseUnaryOp<
-//			Eigen::internal::scalar_opposite_op<typename Eigen::internal::traits<Derived>::Scalar>,
+//			Eigen::ei_scalar_opposite_op<typename Eigen::ei_traits<Derived>::Scalar>,
 //			Derived
 //		>
 //	>
-	const typename MatrixBaseType::PlainObject
+	const typename MatrixBaseType::PlainMatrixType
 	sub(double l, const Eigen::MatrixBase<Derived>& r) {
-		return l - r;
+		return l + (-r).cwise();
 	}
 
 	template<typename Derived> static
 	const Eigen::CwiseUnaryOp<
-		Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<Derived>::Scalar>,
-		const Derived
+		Eigen::ei_scalar_multiple_op<typename Eigen::ei_traits<Derived>::Scalar>,
+		Derived
 	>
 	mult(const Eigen::MatrixBase<Derived>& l, double r) {
 		return l * r;
@@ -307,8 +303,8 @@ template<typename TraitsDerived> struct Traits<Eigen::MatrixBase<TraitsDerived> 
 
 	template<typename Derived> static
 	const Eigen::CwiseUnaryOp<
-		Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<Derived>::Scalar>,
-		const Derived
+		Eigen::ei_scalar_multiple_op<typename Eigen::ei_traits<Derived>::Scalar>,
+		Derived
 	>
 	mult(double l, const Eigen::MatrixBase<Derived>& r) {
 		return l * r;
@@ -316,8 +312,8 @@ template<typename TraitsDerived> struct Traits<Eigen::MatrixBase<TraitsDerived> 
 
 	template<typename Derived> static
 	const Eigen::CwiseUnaryOp<
-		Eigen::internal::scalar_quotient1_op<typename Eigen::internal::traits<Derived>::Scalar>,
-		const Derived
+		Eigen::ei_scalar_quotient1_op<typename Eigen::ei_traits<Derived>::Scalar>,
+		Derived
 	>
 	div(const Eigen::MatrixBase<Derived>& l, double r) {
 		return l / r;
@@ -326,18 +322,18 @@ template<typename TraitsDerived> struct Traits<Eigen::MatrixBase<TraitsDerived> 
 	template<typename Derived> static
 // TODO(dc): this method returns random (uninitialized? deallocated?) values when it has the commented-out return type. i don't know why.
 //	const Eigen::CwiseUnaryOp<
-//		Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<Eigen::CwiseUnaryOp<
-//			Eigen::internal::scalar_inverse_op<typename Eigen::internal::traits<Derived>::Scalar>,
+//		Eigen::ei_scalar_multiple_op<typename Eigen::ei_traits<Eigen::CwiseUnaryOp<
+//			Eigen::ei_scalar_inverse_op<typename Eigen::ei_traits<Derived>::Scalar>,
 //			Derived
 //		> >::Scalar>,
 //		Eigen::CwiseUnaryOp<
-//			Eigen::internal::scalar_inverse_op<typename Eigen::internal::traits<Derived>::Scalar>,
+//			Eigen::ei_scalar_inverse_op<typename Eigen::ei_traits<Derived>::Scalar>,
 //			Derived
 //		>
 //	>
-	const typename MatrixBaseType::PlainObject
+	const typename MatrixBaseType::PlainMatrixType
 	div(double l, const Eigen::MatrixBase<Derived>& r) {
-		return l * r.cwiseInverse();
+		return l * r.cwise().inverse();
 	}
 };
 

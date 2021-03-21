@@ -76,7 +76,7 @@ public:
 
 	template<size_t N>
 	Input<typename boost::tuples::element<N, tuple_type>::type >& getInput() {
-		return inputs.template getInput<N>();
+		return inputs.getInput<N>();
 	}
 
 protected:

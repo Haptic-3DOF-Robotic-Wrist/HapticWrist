@@ -9,9 +9,6 @@
 #include <vector>
 #include <algorithm>
 
-#define EIGEN_USE_NEW_STDVECTOR
-#include <Eigen/StdVector>
-
 #include <libconfig.h++>
 
 #include <barrett/math.h>
@@ -166,7 +163,7 @@ protected:
 	systems::ExposedOutput<double> tensionValue;
 	systems::Ramp motorRamp;
 
-	std::vector<jp_type, Eigen::aligned_allocator<jp_type> > jpInitial, jpStart, jpSlack1, jpSlack2;
+	std::vector<jp_type> jpInitial, jpStart, jpSlack1, jpSlack2;
 	jp_type tensionDefaults, jpStopHigh, jpStopLow, tangBuffer, tangMiss, stopBuffer, slackThreshold;
 	sqm_type j2mp;
 	double motorSlackPulled, j1SlackPulled, j5TangPos, j6TangPos;
@@ -686,15 +683,12 @@ int main(int argc, char** argv) {
 			"\n");
 
 	// For clean stack traces
-	ProductManager pm;
-	if (pm.foundWam7Gimbals()){  //gimbals error message
-		printf("\nGimbals do not have autotensioners. Please re-run with a different outer link\n\n");
-		return 0;
-	}
 	barrett::installExceptionHandler();
 
 	// Create our product manager
+	ProductManager pm;
 	pm.waitForWam();
+
 	if (pm.foundWam4()) {
 		return wam_main<4>(argc, argv, pm, *pm.getWam4(true, NULL));
 	} else if (pm.foundWam7()) {

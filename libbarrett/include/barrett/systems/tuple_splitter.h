@@ -75,7 +75,7 @@ public:
 
 	template<size_t N>
 	Output<typename boost::tuples::element<N, tuple_type>::type >& getOutput() {
-		return outputs.template getOutput<N>();
+		return outputs.getOutput<N>();
 	}
 
 protected:

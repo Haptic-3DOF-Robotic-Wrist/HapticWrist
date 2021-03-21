@@ -83,12 +83,12 @@ LowLevelWam<DOF>::LowLevelWam(const std::vector<Puck*>& _pucks, SafetyModule* _s
 
 
 	// Compute motor/joint transforms
-	Eigen::FullPivLU<typename sqm_type::Base> lu(j2mp);
+	Eigen::LU<typename sqm_type::Base> lu(j2mp);
 	if (!lu.isInvertible()) {
 		(logMessage("LowLevelWam::%s(): j2mp matrix is not invertible.")
 				% __func__).template raise<std::runtime_error>();
 	}
-	m2jp = lu.inverse();
+	lu.computeInverse(&m2jp);
 	j2mt = m2jp.transpose();
 
 

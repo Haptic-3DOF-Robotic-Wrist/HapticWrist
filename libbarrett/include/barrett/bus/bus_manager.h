@@ -33,6 +33,7 @@
 #ifndef BARRETT_BUS_BUS_MANAGER_H_
 #define BARRETT_BUS_BUS_MANAGER_H_
 
+
 #include <map>
 #include <cstring>
 
@@ -42,87 +43,87 @@
 #include <barrett/thread/abstract/mutex.h>
 #include <barrett/bus/abstract/communications_bus.h>
 
-namespace barrett
-{
-	namespace bus
-	{
 
-		class BusManager : public CommunicationsBus
+namespace barrett {
+namespace bus {
+
+
+class BusManager : public CommunicationsBus {
+public:
+	/** BusManager Constructors and Destructors
+	 */
+	BusManager(CommunicationsBus* bus = NULL);
+	BusManager(int port);
+	virtual ~BusManager();
+	/** getUnderlyingBus pointer returns bus.
+	 */
+	const CommunicationsBus& getUnderlyingBus() const { return *bus; }
+	/**
+	 */
+	virtual thread::Mutex& getMutex() const { return bus->getMutex(); }
+	/** Open Method creates the communication port on CANBus
+	 */
+	virtual void open(int port) { bus->open(port); }
+	/** close Method destroys the communication port on CANBus
+	 */
+	virtual void close() { bus->close(); }
+	/** isOpen Method is flag for available communication on CANBus
+	 */
+	virtual bool isOpen() const { return bus->isOpen(); }
+	/** send Method 
+	 */
+	virtual int send(int busId, const unsigned char* data, size_t len) const
+		{ return bus->send(busId, data, len); }
+	/** receive Method is thread safe way to update CANBus messages
+	 */
+	virtual int receive(int expectedBusId, unsigned char* data, size_t& len,
+			bool blocking = true, bool realtime = false) const;
+	/** receiveRaw Method works the same as receive but is realtime safe
+	 */
+	virtual int receiveRaw(int& busId, unsigned char* data, size_t& len,
+			bool blocking = true) const
+		{ return bus->receiveRaw(busId, data, len, blocking); }
+
+protected:
+	int updateBuffers() const;
+	void storeMessage(int busId, const unsigned char* data, size_t len) const;
+	bool retrieveMessage(int busId, unsigned char* data, size_t& len) const;
+
+	CommunicationsBus* bus;
+	bool deleteBus;
+
+private:
+	struct Message {
+		Message(const unsigned char* d, size_t l) :
+			len(l)
 		{
-		public:
-			// /** BusManager Constructors and Destructors
-			//  */
-			// BusManager(CommunicationsBus* bus = NULL);
-			// BusManager(int port);
-			// virtual ~BusManager();
-			// /** getUnderlyingBus pointer returns bus.
-			//  */
-			// const CommunicationsBus& getUnderlyingBus() const { return *bus; }
-			// /**
-			//  */
-			// virtual thread::Mutex& getMutex() const { return bus->getMutex(); }
-			// /** Open Method creates the communication port on CANBus
-			//  */
-			// virtual void open(int port) { bus->open(port); }
-			// /** close Method destroys the communication port on CANBus
-			//  */
-			// virtual void close() { bus->close(); }
-			// /** isOpen Method is flag for available communication on CANBus
-			//  */
-			// virtual bool isOpen() const { return bus->isOpen(); }
-			// /** send Method
-			//  */
-			// virtual int send(int busId, const unsigned char* data, size_t len) const
-			// 	{ return bus->send(busId, data, len); }
-			// /** receive Method is thread safe way to update CANBus messages
-			//  */
-			// virtual int receive(int expectedBusId, unsigned char* data, size_t& len,
-			// 		bool blocking = true, bool realtime = false) const;
-			// /** receiveRaw Method works the same as receive but is realtime safe
-			//  */
-			// virtual int receiveRaw(int& busId, unsigned char* data, size_t& len,
-			// 		bool blocking = true) const
-			// 	{ return bus->receiveRaw(busId, data, len, blocking); }
+			memcpy(data, d, len);
+		}
 
-		protected:
-			int updateBuffers() const;
-			void storeMessage(int busId, const unsigned char *data, size_t len) const;
-			bool retrieveMessage(int busId, unsigned char *data, size_t &len) const;
+		void copyTo(unsigned char* d, size_t& l) {
+			l = len;
+			memcpy(d, data, len);
+		}
 
-			CommunicationsBus *bus;
-			bool deleteBus;
+		unsigned char data[CommunicationsBus::MAX_MESSAGE_LEN];
+		size_t len;
+	};
 
-		private:
-			struct Message
-			{
-				// Message(const unsigned char *d, size_t l) : len(l)
-				// {
-				// 	memcpy(data, d, len);
-				// }
+	static const size_t MESSAGE_BUFFER_SIZE = 10;
+	class MessageBuffer : public boost::circular_buffer<Message> {
+	public:
+		MessageBuffer() :
+			boost::circular_buffer<Message>(MESSAGE_BUFFER_SIZE) {}
+	};
 
-				// void copyTo(unsigned char *d, size_t &l)
-				// {
-				// 	l = len;
-				// 	memcpy(d, data, len);
-				// }
+	mutable std::map<int, MessageBuffer> messageBuffers;
 
-				// unsigned char data[CommunicationsBus::MAX_MESSAGE_LEN];
-				// size_t len;
-			};
+	DISALLOW_COPY_AND_ASSIGN(BusManager);
+};
 
-			static const size_t MESSAGE_BUFFER_SIZE = 10;
-			class MessageBuffer : public boost::circular_buffer<Message>
-			{
-			public:
-				MessageBuffer() : boost::circular_buffer<Message>(MESSAGE_BUFFER_SIZE) {}
-			};
 
-			mutable std::map<int, MessageBuffer> messageBuffers;
+}
+}
 
-			DISALLOW_COPY_AND_ASSIGN(BusManager);
-		};
-
-	} // namespace bus
-} // namespace barrett
 
 #endif /* BARRETT_BUS_BUS_MANAGER_H_ */
